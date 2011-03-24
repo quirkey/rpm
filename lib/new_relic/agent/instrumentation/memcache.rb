@@ -37,6 +37,7 @@ unless NewRelic::Control.instance['disable_memcache_instrumentation']
     instrument_method(::MemCache, method_name) if defined? ::MemCache
     instrument_method(::Memcached, method_name) if defined? ::Memcached
     instrument_method(::Dalli::Client, method_name) if defined? ::Dalli::Client
+    instrument_method(::Remix::Stash, method_name) if defined? ::Remix::Stash
   end
 
 end

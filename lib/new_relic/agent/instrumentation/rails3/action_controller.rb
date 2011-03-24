@@ -23,6 +23,12 @@ module NewRelic
           end
 
           def process_action(*args)
+            # skip instrumentation if we are in an ignored action
+            if _is_filtered?('do_not_trace')
+              NewRelic::Agent.disable_all_tracing do
+                return super
+              end
+            end
 
             perform_action_with_newrelic_trace(:category => :controller, :name => self.action_name, :params => request.filtered_parameters, :class_name => self.class.name)  do
               super

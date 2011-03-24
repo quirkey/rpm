@@ -93,6 +93,8 @@ module NewRelic
     # is called one or more times.
     #
     def init_plugin(options={})
+      require 'conditional_vendored_metric_parser'
+      
       options['app_name'] = ENV['NEWRELIC_APP_NAME'] if ENV['NEWRELIC_APP_NAME']
 
       require 'new_relic/agent'
@@ -171,6 +173,17 @@ module NewRelic
     # the server for change detection.  Override in subclasses
     def append_environment_info; end
 
+    def bundler_gem_list
+      if defined?(Bundler) && Bundler.instance_eval do @load end
+        Bundler.load.specs.map do | spec |
+          version = (spec.respond_to?(:version) && spec.version)
+          spec.name + (version ? "(#{version})" : "")
+        end
+      else
+        []
+      end
+    end
+    
     def config_file
       File.expand_path(File.join(root,"config","newrelic.yml"))
     end

@@ -34,27 +34,37 @@ module NewRelic
         # if the host is not an IP address, turn it into one
         NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
       end
-
-      # Look up the ip address of the host using the pure ruby lookup
-      # to prevent blocking.  If that fails, fall back to the regular
-      # IPSocket library.  Return nil if we can't find the host ip
-      # address and don't have a good default.
+      
+      # Check to see if we need to look up the IP address
+      # If it's an IP address already, we pass it through.
+      # If it's nil, or localhost, we don't bother.
+      # Otherwise, use `resolve_ip_address` to find one
       def convert_to_ip_address(host)
         # here we leave it as a host name since the cert verification
         # needs it in host form
         return host if verify_certificate?
         return nil if host.nil? || host.downcase == "localhost"
-        # Fall back to known ip address in the common case
-        ip_address = '65.74.177.195' if host.downcase == 'collector.newrelic.com'
+        ip = resolve_ip_address(host)
+        log.info "Resolved #{host} to #{ip}"
+        ip
+      end
+      
+      # Look up the ip address of the host using the pure ruby lookup
+      # to prevent blocking.  If that fails, fall back to the regular
+      # IPSocket library.  Return nil if we can't find the host ip
+      # address and don't have a good default.
+      def resolve_ip_address(host)
+        Resolv.getaddress(host)
+      rescue Exception => e
+        log.warn("DNS Error caching IP address: #{e}")
+        log.debug(e.backtrace.join("\n   "))
         begin
-          ip_address = Resolv.getaddress(host)
-          log.info "Resolved #{host} to #{ip_address}"
-        rescue => e
-          log.warn "DNS Error caching IP address: #{e}"
-          log.debug e.backtrace.join("\n   ")
-          ip_address = IPSocket::getaddress host rescue ip_address
+          log.info("Trying native DNS lookup since Resolv failed")
+          IPSocket.getaddress(host)
+        rescue Exception => e
+          log.error("Could not look up server address: #{e}")
+          nil
         end
-        ip_address
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.

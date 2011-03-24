@@ -5,12 +5,6 @@ module NewRelic::DeveloperModeHelper
 
   private
   
-  # return the host that serves static content (css, metric documentation, images, etc)
-  # that supports the desktop edition.
-  def server
-    NewRelic::Control.instance['desktop_server'] || "http://rpm.newrelic.com"
-  end
-  
   # limit of how many detail/SQL rows we display - very large data sets (~10000+) crash browsers
   def trace_row_display_limit
     2000
@@ -62,10 +56,6 @@ module NewRelic::DeveloperModeHelper
     path
   end
   
-  def url_for_metric_doc(metric_name)
-    "#{server}/metric_doc?metric=#{CGI::escape(metric_name)}"
-  end
-  
   def url_for_source(trace_line)
     file, line = file_and_line(trace_line)
     
@@ -87,7 +77,7 @@ module NewRelic::DeveloperModeHelper
   end
   
   def dev_name(metric_name)
-    NewRelic::MetricParser.parse(metric_name).developer_name
+    NewRelic::MetricParser::MetricParser.parse(metric_name).developer_name
   end
   
   # write the metric label for a segment metric in the detail view

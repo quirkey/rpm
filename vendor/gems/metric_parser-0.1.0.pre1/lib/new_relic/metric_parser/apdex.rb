@@ -1,10 +1,10 @@
 require 'new_relic/metric_parser'
 module NewRelic
-  class MetricParser
-    class Apdex < NewRelic::MetricParser
-
+  module MetricParser
+    class Apdex < NewRelic::MetricParser::MetricParser
+      
       CLIENT = 'Client'
-
+      
       # Convenience method for creating the appropriate client
       # metric name.
       def self.client_metric(apdex_t)
@@ -14,6 +14,7 @@ module NewRelic
         "#{self.client_metric(apdex_t)}/#{os}/#{browser}/#{version}"
       end
 
+      def is_apdex?; true; end
       def is_client?
         segments[1] == CLIENT
       end
@@ -26,12 +27,12 @@ module NewRelic
       def is_summary?
         segments.size == 1
       end
-
+      
       # Apdex/Client/N
       def apdex_t
         is_client? && segments[2].to_f
       end
-
+      
       def platform
         is_browser_summary? && segments[3]
       end
@@ -51,7 +52,7 @@ module NewRelic
       def platform_and_user_agent
         is_browser_summary? && segments[3..-1].join(" ")
       end
-
+      
       def developer_name
         case
         when is_client? then "Apdex Client (#{apdex_t})"
@@ -60,7 +61,7 @@ module NewRelic
         else "Apdex #{segments[1..-1].join("/")}"
         end
       end
-
+      
       def short_name
         # standard controller actions
         if segments.length > 1
@@ -69,12 +70,12 @@ module NewRelic
           'All Frontend Urls'
         end
       end
-
+      
       def url
         '/' + segments[1..-1].join('/')
       end
-
-      # this is used to match transaction traces to controller actions.
+      
+      # this is used to match transaction traces to controller actions.  
       # TT's don't have a preceding slash :P
       def tt_path
         segments[1..-1].join('/')

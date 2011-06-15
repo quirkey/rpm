@@ -1,9 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
-require "test/unit"
-require "mocha"
-##require 'new_relic/local_environment'
-class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
-  
+class NewRelic::LocalEnvironmentTest < Test::Unit::TestCase
+
   def teardown
     # To remove mock server instances from ObjectSpace
     ObjectSpace.garbage_collect
@@ -15,16 +12,16 @@ class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
     end
   end
   MOCK_OPTIONS = MockOptions.new
-  
+
   def test_environment
     e = NewRelic::LocalEnvironment.new
-    assert_equal nil, e.environment
+    assert(nil == e.environment) # working around a bug in 1.9.1
     assert_match /test/i, e.dispatcher_instance_id
   end
   def test_no_webrick
     Object.const_set :OPTIONS, 'foo'
     e = NewRelic::LocalEnvironment.new
-    assert_equal nil, e.environment
+    assert(nil == e.environment) # working around a bug in 1.9.1
     assert_match /test/i, e.dispatcher_instance_id
     Object.class_eval { remove_const :OPTIONS }
   end
@@ -38,15 +35,15 @@ class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
     e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
     assert_nil e.dispatcher_instance_id, "dispatcher instance id should be nil: #{e.dispatcher_instance_id}"
-      
+
     NewRelic::Control.instance.instance_eval do
       @settings['app_name'] = 'myapp'
     end
-    
-    e = NewRelic::LocalEnvironment.new 
+
+    e = NewRelic::LocalEnvironment.new
     assert_equal :passenger, e.environment
     assert_nil e.dispatcher_instance_id
-    
+
     ::Passenger.class_eval { remove_const :AbstractServer }
   end
   def test_snapshot
@@ -62,8 +59,8 @@ class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
       assert s.assoc('Processors').last.to_i > 0
     end
   end
-  
-  
+
+
   def test_default_port
     e = NewRelic::LocalEnvironment.new
     assert_equal 3000, e.send(:default_port)
@@ -71,5 +68,5 @@ class EnvironmentTest < Test::Unit::TestCase # ActiveSupport::TestCase
     assert_equal '3121', e.send(:default_port)
     ARGV.pop
   end
-  
+
 end

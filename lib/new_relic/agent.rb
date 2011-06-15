@@ -1,3 +1,4 @@
+require 'new_relic/control'
 # = New Relic RPM Agent
 #
 # New Relic RPM is a performance monitoring application for Ruby
@@ -71,7 +72,9 @@ module NewRelic
     require 'new_relic/histogram'
     require 'new_relic/timer_lib'
 
+    require 'new_relic/agent'
     require 'new_relic/agent/chained_call'
+    require 'new_relic/agent/browser_monitoring'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/shim_agent'
     require 'new_relic/agent/method_tracer'
@@ -290,6 +293,14 @@ module NewRelic
       Thread.current[:newrelic_untraced].nil? || Thread.current[:newrelic_untraced].last != false
     end
 
+    def is_transaction_traced?
+      Thread::current[:record_tt] != false
+    end
+
+    def is_sql_recorded?
+      Thread::current[:record_sql] != false
+    end
+
     # Set a filter to be applied to errors that RPM will track.  The
     # block should evalute to the exception to track (which could be
     # different from the original exception) or nil to ignore this
@@ -377,5 +388,18 @@ module NewRelic
     def record_transaction(response_sec, options = {})
       agent.record_transaction(response_sec, options)
     end
+
+    # Returns a Javascript string which should be injected into the very top of the response body
+    #
+    def browser_timing_header
+      agent.browser_timing_header
+    end
+
+    # Returns a Javascript string which should be injected into the very bottom of the response body
+    #
+    def browser_timing_footer
+      agent.browser_timing_footer
+    end
+
   end
 end

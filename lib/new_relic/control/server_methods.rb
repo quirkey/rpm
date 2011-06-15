@@ -34,7 +34,7 @@ module NewRelic
         # if the host is not an IP address, turn it into one
         NewRelic::Control::Server.new host, (self['port'] || (use_ssl? ? 443 : 80)).to_i, convert_to_ip_address(host)
       end
-      
+
       # Check to see if we need to look up the IP address
       # If it's an IP address already, we pass it through.
       # If it's nil, or localhost, we don't bother.
@@ -48,7 +48,7 @@ module NewRelic
         log.info "Resolved #{host} to #{ip}"
         ip
       end
-      
+
       # Look up the ip address of the host using the pure ruby lookup
       # to prevent blocking.  If that fails, fall back to the regular
       # IPSocket library.  Return nil if we can't find the host ip
@@ -65,6 +65,10 @@ module NewRelic
           log.error("Could not look up server address: #{e}")
           nil
         end
+      end
+
+      def cert_file_path
+        File.expand_path(File.join(newrelic_root, 'cert', 'cacert.pem'))
       end
 
       # Return the Net::HTTP with proxy configuration given the NewRelic::Control::Server object.
@@ -85,7 +89,7 @@ module NewRelic
           http.use_ssl = true
           if verify_certificate?
             http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            http.ca_file = File.join(File.dirname(__FILE__), '..', '..', 'cert', 'cacert.pem')
+            http.ca_file = cert_file_path
           else
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
@@ -93,6 +97,7 @@ module NewRelic
         http
       end
     end
+
+    include ServerMethods
   end
 end
-

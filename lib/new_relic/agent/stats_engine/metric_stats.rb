@@ -7,7 +7,7 @@ module NewRelic
             @mutex = Mutex.new
             super
           end
-          
+
           def []=(*args)
             @mutex.synchronize {
               super
@@ -31,14 +31,14 @@ module NewRelic
               super
             }
           end
-          
+
           def delete_if(*args)
             @mutex.synchronize {
               super
             }
           end
         end
-        
+
         # The stats hash hashes either a metric name for an unscoped metric,
         # or a metric_spec for a scoped metric value.
         def lookup_stat(metric_name)
@@ -116,7 +116,6 @@ module NewRelic
               # data
               previous_metric_data = previous_timeslice_data[metric_spec]
               stats_copy.merge! previous_metric_data.stats unless previous_metric_data.nil?
-              stats_copy.round!
 
               # don't bother collecting and reporting stats that have zero-values for this timeslice.
               # significant performance boost and storage savings.
@@ -136,7 +135,7 @@ module NewRelic
 
         # Remove all stats.  For test code only.
         def clear_stats
-          stats_hash.clear
+          @stats_hash = SynchronizedHash.new
           NewRelic::Agent::BusyCalculator.reset
         end
 

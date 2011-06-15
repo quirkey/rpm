@@ -18,7 +18,6 @@
 # directly.
 #
 require 'new_relic/control'
-
 if defined? Merb
   module NewRelic
     class MerbBootLoader < Merb::BootLoader
@@ -34,14 +33,15 @@ elsif defined? Rails
       class Railtie < Rails::Railtie
 
         initializer "newrelic_rpm.start_plugin" do |app|
-	  NewRelic::Control.instance.init_plugin(:config => app.config)
+    NewRelic::Control.instance.init_plugin(:config => app.config)
         end
       end
     end
   else
     # After verison 2.0 of Rails we can access the configuration directly.
     # We need it to add dev mode routes after initialization finished.
-    config = Rails.configuration if defined?(Rails.configuration)
+    config = nil
+    config = Rails.configuration if Rails.respond_to?(:configuration)
     NewRelic::Control.instance.init_plugin :config => config
   end
 else

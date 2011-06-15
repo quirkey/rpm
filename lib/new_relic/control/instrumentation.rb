@@ -6,7 +6,7 @@ module NewRelic
           begin
             log.debug "Processing instrumentation file '#{file}'"
             require file.to_s
-          rescue => e
+          rescue Exception => e
             log.error "Error loading instrumentation file '#{file}': #{e}"
             log.debug e.backtrace.join("\n")
           end
@@ -33,24 +33,8 @@ module NewRelic
         end
       end
 
-      def _delayed_instrumentation
-        Rails.configuration.after_initialize do
-          _install_instrumentation
-        end
-      rescue
-        _install_instrumentation
-      end
-
       def install_instrumentation
-        if defined?(Rails) && !Rails.initialized?
-          _delayed_instrumentation
-        else
-          _install_instrumentation
-        end
-      rescue NameError
-        # needed in the rails 3 case, where Rails.initialized? raises
-        # an error if rails has not been initialised. which is totally sane.
-        _delayed_instrumentation
+        _install_instrumentation
       end
 
       def load_samplers
@@ -88,8 +72,10 @@ module NewRelic
         File.join(instrumentation_path, '*.rb') <<
         File.join(instrumentation_path, app.to_s, '*.rb')
         @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
+        DependencyDetection.detect!
         log.debug "Finished instrumentation"
       end
     end
+    include Instrumentation
   end
 end

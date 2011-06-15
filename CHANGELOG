@@ -1,3 +1,39 @@
+v3.0.1 
+  * Updated Real User Monitoring to reduce javascript size and improve
+    compatibility, fix a few known bugs
+
+v3.0.0
+  * Support for Real User Monitoring
+  * Back end work on internals to improve reliability
+  * added a 'log_file_name' and 'log_file_path' configuration variable to allow
+    setting the path and name of the agent log file
+  * Improve reliability of statistics calculations
+  * Remove some previously deprecated methods
+  * Remove Sequel instrumentation pending more work
+
+v2.14.1
+  * Avoid overriding methods named 'log' when including the MethodTracer module
+  * Ensure that all load paths for 'new_relic/agent' go through 'new_relic/control' first
+  * Remove some debugging output from tests
+
+v2.14.0
+  * Dependency detection framework to prevent multi-loading or early-loading
+    of instrumentation files
+
+v2.13.5
+  * Moved the API helper to the github newrelic_api gem.
+  * Revamped queue time to include server, queue, and middleware time
+  * Increased test coverage and stability
+  * Add Trinidad as a dispatcher (from Calavera, on github)
+  * Sequel instrumentation from Aman Gupta
+  * patches to 1.9 compatibility from dkastner on github
+  * Support for 1.9.2's garbage collection instrumentation from Justin Weiss
+  * On Heroku, existing queue time headers will be detected
+  * Fix rack constant scoping in dev mode for 1.9 (Rack != ::Rack)
+  * Fixes for instrumentation loading failing on Exception classes that
+    are not subclasses of StandardError
+  * Fix active record instrumentation load order for Rails 3
+
 v2.13.4
   * Update DNS lookup code to remove hardcoded IP addresses
 
